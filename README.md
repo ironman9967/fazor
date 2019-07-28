@@ -1,7 +1,7 @@
 # fazor
 
 ## description
-a redux like state engine for react using 'useReducer'(https://reactjs.org/docs/hooks-reference.html#usereducer) hook and constate(https://github.com/diegohaz/constate)
+a redux like state engine for react using ['useReducer'](https://reactjs.org/docs/hooks-reference.html#usereducer) hook and [constate](https://github.com/diegohaz/constate)
 
 ## installation
 `npm i fazor -S`
