@@ -7,7 +7,7 @@ a redux like state engine for react using ['useReducer'](https://reactjs.org/doc
 `npm i fazor -S`
 
 ## usage
-```
+```javascript
 import React from 'react'
 
 import { create } from 'fazor'
