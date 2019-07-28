@@ -10,8 +10,9 @@ a redux like state engine for react using ['useReducer'](https://reactjs.org/doc
 ```javascript
 import React from 'react'
 
-import { create } from 'fazor'
+import { create as createFazor } from 'fazor'
 
+// an initial state for your component
 const myComponentInitialState = {
 	i: 0,
 	messages: [
@@ -20,15 +21,24 @@ const myComponentInitialState = {
 	]
 }
 
+// your container component that will dispatch 'myAction'
 const MyComponent = ({ useFaze, createAction }) => {
+	// 'useFaze' will give you a method to get state and get any actions you created
 	const [ getState, getActions ] = useFaze()
 
+	// 'createAction' accepts a type, an optional handler and an optional reducer
 	createAction({
+		// -the type the name of the execute function returned by getActions
 		type: 'myAction',
+		// -the handler will be called when the action is executed
+		//  -return an object from the handler to add properties to the action
+		//  -return false to abort the dispatch
 		handler: () => {
 			const { i, messages } = getState()
 			return { myMessage: messages[i] }
 		},
+		// -the reducer will be passed the current state and the dispatched action
+		//  -the new state must be returned
 		reducer: ({ i, ...state }, { myMessage }) => ({
 			...state,
 			i: i === 0 ? 1 : 0,
@@ -37,6 +47,7 @@ const MyComponent = ({ useFaze, createAction }) => {
 	})
 
 	return (
+		// calling 'getActions' returns an object with all the actions you've created
 		<button onClick={ getActions().myAction }>
 			dispatch my action
 		</button>
@@ -44,9 +55,15 @@ const MyComponent = ({ useFaze, createAction }) => {
 }
 
 const App = () => {
-	const [ useFaze, createAction ] = create({ ...myComponentInitialState })
+	// pass any initial state to 'createFazor'
+	const [
+		useFaze,
+		createAction
+	] = createFazor({ ...myComponentInitialState })
 	return (
+		// wrap your component in 'useFaze.Provider'
 		<useFaze.Provider>
+			// pass 'useFaze' and 'createAction' to any containers that need state or dispatch actions
 			<MyComponent useFaze={useFaze} createAction={createAction} />
 		</useFaze.Provider>
 	)
