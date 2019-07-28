@@ -1,0 +1,19 @@
+{
+  "name": "fazor",
+  "version": "0.0.1",
+  "description": "a redux like state engine using react useReducer and constate",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ironman9967/fazor.git"
+  },
+  "author": "Tyson Hester",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ironman9967/fazor/issues"
+  },
+  "homepage": "https://github.com/ironman9967/fazor#readme"
+}
