@@ -1,19 +1,44 @@
 {
-  "name": "fazor",
-  "version": "0.0.1",
-  "description": "a redux like state engine using react useReducer and constate",
-  "main": "dist/index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/ironman9967/fazor.git"
-  },
-  "author": "Tyson Hester",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/ironman9967/fazor/issues"
-  },
-  "homepage": "https://github.com/ironman9967/fazor#readme"
+	"name": "fazor",
+	"version": "0.0.1",
+	"description": "a redux like state engine using react useReducer and constate",
+	"main": "dist/index.js",
+	"devDependencies": {
+		"@babel/cli": "^7.5.0",
+		"@babel/core": "^7.5.4",
+		"@babel/plugin-proposal-object-rest-spread": "^7.5.4",
+		"@babel/plugin-transform-async-to-generator": "^7.5.0",
+		"@babel/preset-env": "^7.5.4"
+	},
+	"dependencies": {
+		"@babel/polyfill": "^7.4.4",
+		"constate": "^1.2.0",
+		"react": "^16.8.6",
+		"react-dom": "^16.8.6"
+	},
+	"scripts": {
+		"build": "rm -rf dist && npx babel src -d dist && cp package.json dist",
+		"publish-patch": "npm run build && npm version patch && npm publish && git push",
+		"publish-minor": "npm run build && npm version minor && npm publish && git push",
+		"publish-major": "npm run build && npm version major && npm publish && git push"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/ironman9967/fazor.git"
+	},
+	"author": "Tyson Hester",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/ironman9967/fazor/issues"
+	},
+	"homepage": "https://github.com/ironman9967/fazor#readme",
+	"babel": {
+		"presets": [
+			"@babel/preset-env"
+		],
+		"plugins": [
+			"@babel/plugin-proposal-object-rest-spread",
+			"@babel/plugin-transform-async-to-generator"
+		]
+	}
 }
