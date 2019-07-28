@@ -37,7 +37,9 @@ const MyComponent = ({ useFaze, createAction }) => {
 	})
 
 	return (
-		<button onClick={ getActions().myAction }>go</button>
+		<button onClick={ getActions().myAction }>
+			dispatch my message
+		</button>
 	)
 }
 
