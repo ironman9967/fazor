@@ -1,5 +1,5 @@
 {
-	"name": "fazor",
+	"name": "@fazor/fazor",
 	"version": "0.1.0",
 	"description": "a redux like state engine using react useReducer and constate",
 	"main": "dist/index.js",
