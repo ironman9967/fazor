@@ -1,45 +1,51 @@
 # fazor
 
+## description
+a redux like state engine for react using 'useReducer'[https://reactjs.org/docs/hooks-reference.html#usereducer] hook and constate[https://github.com/diegohaz/constate]
+
 ## installation
 `npm i fazor -S`
 
 ## usage
 ```
-import React, { useEffect } from 'react'
+import React from 'react'
 
 import { create } from 'fazor'
+
+const myComponentInitialState = {
+	i: 0,
+	messages: [
+		'fazors to stun',
+		'faze transitions'
+	]
+}
 
 const MyComponent = ({ useFaze, createAction }) => {
 	const [ getState, getActions ] = useFaze()
 
 	createAction({
 		type: 'myAction',
-		handler: (int1, int2, int3) => {
-			return { myIntArr: [ int1, int2, int3 ] }
+		handler: () => {
+			const { i, messages } = getState()
+			return { myMessage: messages[i] }
 		},
-		reducer: (state, { myIntArr }) => {
-			return {
-				...state,
-				myIntArr
-			}
-		}
+		reducer: ({ i, ...state }, { myMessage }) => ({
+			...state,
+			i: i === 0 ? 1 : 0,
+			myMessage
+		})
 	})
 
 	return (
-		<div>
-			<button onClick={() => {
-				const { myAction } = getActions()
-				myAction(1, 2, 3)
-			}}>go</button>
-		</div>
+		<button onClick={ getActions().myAction }>go</button>
 	)
 }
 
-const App = props => {
-	const [ createAction, useFaze ] = create()
+const App = () => {
+	const [ useFaze, createAction ] = create({ ...myComponentInitialState })
 	return (
 		<useFaze.Provider>
-
+			<MyComponent useFaze={useFaze} createAction={createAction} />
 		</useFaze.Provider>
 	)
 }
