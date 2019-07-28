@@ -11,7 +11,7 @@ a redux like state engine for react using ['useReducer'](https://reactjs.org/doc
 import React from 'react'
 import ReactDOM from 'react-dom'
 
-import { create as createFazor } from 'fazor'
+import { create as createFazor } from '@fazor/fazor'
 
 // an initial state for your component
 const myComponentInitialState = {
