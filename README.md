@@ -64,7 +64,8 @@ const App = () => {
 	return (
 		// wrap your component in 'useFaze.Provider'
 		<useFaze.Provider>
-			// pass 'useFaze' and 'createAction' to any containers that need state or dispatch actions
+			// pass 'useFaze' and 'createAction' to containers that need
+			//  state or to dispatch actions
 			<MyComponent useFaze={useFaze} createAction={createAction} />
 		</useFaze.Provider>
 	)
