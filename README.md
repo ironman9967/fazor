@@ -9,6 +9,7 @@ a redux like state engine for react using ['useReducer'](https://reactjs.org/doc
 ## usage
 ```javascript
 import React from 'react'
+import ReactDOM from 'react-dom'
 
 import { create as createFazor } from 'fazor'
 
@@ -23,21 +24,21 @@ const myComponentInitialState = {
 
 // your container component that will dispatch 'myAction'
 const MyComponent = ({ useFaze, createAction }) => {
-	// 'useFaze' will give you a method to get state and get any actions you created
+	// 'useFaze' will give you a method to get state and any actions you created
 	const [ getState, getActions ] = useFaze()
 
 	// 'createAction' accepts a type, an optional handler and an optional reducer
 	createAction({
-		// -the type the name of the execute function returned by getActions
+		// the type is the name of the execute function returned by 'getActions'
 		type: 'myAction',
-		// -the handler will be called when the action is executed
+		// the handler will be called when the action is executed
 		//  -return an object from the handler to add properties to the action
 		//  -return false to abort the dispatch
 		handler: () => {
 			const { i, messages } = getState()
 			return { myMessage: messages[i] }
 		},
-		// -the reducer will be passed the current state and the dispatched action
+		// the reducer will be passed the current state and the dispatched action
 		//  -the new state must be returned
 		reducer: ({ i, ...state }, { myMessage }) => ({
 			...state,
@@ -68,4 +69,9 @@ const App = () => {
 		</useFaze.Provider>
 	)
 }
+
+ReactDOM.render(
+	<App />,
+	document.getElementById('root')
+)
 ```
