@@ -4,6 +4,8 @@
 	"description": "a redux like state engine using react useReducer and constate",
 	"main": "dist/index.js",
 	"devDependencies": {
+		"react": "^16.8.6",
+		"react-dom": "^16.8.6",
 		"@babel/cli": "^7.5.0",
 		"@babel/core": "^7.5.4",
 		"@babel/plugin-proposal-object-rest-spread": "^7.5.4",
@@ -12,9 +14,10 @@
 	},
 	"dependencies": {
 		"@babel/polyfill": "^7.4.4",
-		"constate": "^1.2.0",
-		"react": "^16.8.6",
-		"react-dom": "^16.8.6"
+		"constate": "^1.2.0"
+	},
+	"peerDependencies": {
+		"react": "^16.8.0"
 	},
 	"scripts": {
 		"build": "rm -rf dist && npx babel src -d dist && cp package.json dist",
