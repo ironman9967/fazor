@@ -13,6 +13,10 @@ const orange = 'color: #ffbb22'
 const gray = 'color: #555555'
 const blue = 'color: #0099cc'
 
+const log = console.log
+
+console.log('qwer')
+
 const logDispatchMessage = (type, {
 	__fazor: { started }
 }, ignored, dispatchColor, message) => {
@@ -29,10 +33,12 @@ const logDispatchMessage = (type, {
 		logArgs.push(gray)
 		logArgs.push(yellow)
 	}
-	console.log.apply(null, logArgs)
+	console.log('asdf')
+	log.apply(null, logArgs)
 }
 
 const createQueue = () => {
+	log('createQueue called')
 	const q = queue(async ({
 		actions,
 		type,
@@ -40,7 +46,15 @@ const createQueue = () => {
 		state,
 		dispatch
 	}) => {
+		log('push to queue', {
+			actions,
+			type,
+			args,
+			state,
+			dispatch
+		})
 		const result = await actions[type].handler.apply(null, args)
+		log('handler result', result)
 		if (result === void 0 || typeof result === 'object') {
 			logDispatchMessage(type, state, false, green)
 			dispatch({ type, ...result })
@@ -53,38 +67,51 @@ const createQueue = () => {
 		}
 		return result
 	}, 1)
-	return [ async item => await q.push(item) ]
+	return [
+		async item => {
+			log('pushing to queue', item)
+			const result = await q.push(item)
+			log('queue task result', result)
+		}
+	]
 }
 
-const createActionCreator = (types, actions) => (...args) => {
-	const isFirstArgString = args[0] !== void 0 && typeof args[0] === 'string'
-	const isArray = Array.isArray(args[0]) && args[0].length > 0
-	const typeOnly = isFirstArgString && args.length === 1
-	const isArgs = isFirstArgString && args.length > 1
-	const {
-		type,
-		handler = () => ({}),
-		reducer = state => ({ ...state })
-	} = typeOnly
-		? { type: args[0] }
-		: isArray
-			? { type: args[0][0], handler: args[0][1], reducer: args[0][2] }
-			: isArgs
-				? { type: args[0], handler: args[1], reducer: args[2] }
-				: args[0]
-	if (type === void 0) {
-		throw new Error(`you must pass createAction `
-			+ `an object, an array or arguments containing `
-			+ `'type', 'handler' and 'reducer' - `
-			+ `received ${args}`)
+const createActionCreator = (types, actions) => {
+	log('creating action creator', { types, actions })
+	return (...args) => {
+		log('create action', args)
+		const isFirstArgString = args[0] !== void 0 && typeof args[0] === 'string'
+		const isArray = Array.isArray(args[0]) && args[0].length > 0
+		const typeOnly = isFirstArgString && args.length === 1
+		const isArgs = isFirstArgString && args.length > 1
+		const {
+			type,
+			handler = () => ({}),
+			reducer = state => ({ ...state })
+		} = typeOnly
+			? { type: args[0] }
+			: isArray
+				? { type: args[0][0], handler: args[0][1], reducer: args[0][2] }
+				: isArgs
+					? { type: args[0], handler: args[1], reducer: args[2] }
+					: args[0]
+		if (type === void 0) {
+			throw new Error(`you must pass createAction `
+				+ `an object, an array or arguments containing `
+				+ `'type', 'handler' and 'reducer' - `
+				+ `received ${args}`)
+		}
+		if (actions[type] === void 0) {
+			types.push(type)
+		}
+		actions[type] = { handler, reducer }
+		log('action created', { type, handler, reducer })
 	}
-	if (actions[type] === void 0) {
-		types.push(type)
-	}
-	actions[type] = { handler, reducer }
 }
 
 export const create = () => {
+	log('creating fazor')
+
 	const types = []
 	const actions = []
 
@@ -94,7 +121,9 @@ export const create = () => {
 
 	return [
 		createAction,
-		initialState => createUseContext(() => {
+		clientInitialState => createUseContext(() => {
+			const initialState = { __fazor: { started: Date.now() }, ...clientInitialState }
+			log('using context', { initialState })
 			const [
 				state,
 				dispatch
@@ -102,23 +131,27 @@ export const create = () => {
 				(state, { type, ...action }) => {
 					const { reducer } = actions[type]
 					const newState = reducer(state, action)
-					console.log('%c\tPREVIOUS STATE', gray, state)
-					console.log('%c\tACTION', orange, { type, ...action })
-					console.log('%c\tNEW STATE', blue, newState)
+					log('%c\tPREVIOUS STATE', gray, state)
+					log('%c\tACTION', orange, { type, ...action })
+					log('%c\tNEW STATE', blue, newState)
 					return { ...newState }
 				},
-				{ __fazor: { started: Date.now() }, ...initialState }
+				initialState
 			)
 			return [
 				({ ...state }),
 				types.reduce((actionDispatches, type) => {
-					actionDispatches[type] = async (...args) => await queueDispatch({
-						actions,
-						type,
-						args,
-						state,
-						dispatch
-					})
+					actionDispatches[type] = async (...args) => {
+						const actionDispatchCall = {
+							actions,
+							type,
+							args,
+							state,
+							dispatch
+						}
+						log('action dispatch called', actionDispatchCall)
+						return await queueDispatch(actionDispatchCall)
+					}
 					return actionDispatches
 				}, {})
 			]
