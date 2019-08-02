@@ -15,8 +15,6 @@ const blue = 'color: #0099cc'
 
 const log = console.log
 
-console.log('qwer')
-
 const logDispatchMessage = (type, {
 	__fazor: { started }
 }, ignored, dispatchColor, message) => {
@@ -33,19 +31,18 @@ const logDispatchMessage = (type, {
 		logArgs.push(gray)
 		logArgs.push(yellow)
 	}
-	console.log('asdf')
 	log.apply(null, logArgs)
 }
 
 const createQueue = () => {
 	log('createQueue called')
-	const q = queue(async ({
+	const q = queue(({
 		actions,
 		type,
 		args,
 		state,
 		dispatch
-	}) => {
+	}, cb) => {
 		log('push to queue', {
 			actions,
 			type,
@@ -53,26 +50,41 @@ const createQueue = () => {
 			state,
 			dispatch
 		})
-		const result = await actions[type].handler.apply(null, args)
-		log('handler result', result)
-		if (result === void 0 || typeof result === 'object') {
-			logDispatchMessage(type, state, false, green)
-			dispatch({ type, ...result })
-		}
-		else if (result !== false) {
-			throw new Error(`action handler result must be undefined, an object to dispatch or false to abort dispatch`)
-		}
-		else {
-			logDispatchMessage(type, state, true, yellow, 'handler returned false')
-		}
-		return result
-	}, 1)
+		new Promise((resolve, reject) => {
+			try {
+				resolve(actions[type].handler.apply(null, args))
+			} catch (e) {
+				reject(e)
+			}
+		}).then(result => {
+			log('handler result', result)
+			if (result === void 0 || typeof result === 'object') {
+				logDispatchMessage(type, state, false, green)
+				dispatch({ type, ...result })
+			}
+			else if (result !== false) {
+				throw new Error(`action handler result must be undefined`
+					+ `, an object to dispatch or false to abort dispatch`)
+			}
+			else {
+				logDispatchMessage(type, state, true, yellow, 'handler returned false')
+			}
+			cb(result)
+		})
+	})
 	return [
-		async item => {
+		item => new Promise((resolve, reject) => {
 			log('pushing to queue', item)
-			const result = await q.push(item)
-			log('queue task result', result)
-		}
+			q.push(item, result => {
+				log('queue task result', result)
+				if (result instanceof Error) {
+					reject(result)
+				}
+				else {
+					resolve(result)
+				}
+			})
+		})
 	]
 }
 
