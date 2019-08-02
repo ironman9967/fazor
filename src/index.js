@@ -16,6 +16,7 @@ const blue = 'color: #0099cc'
 export const loggingLevels = {
 	debug: 0,
 	dispatch: 10,
+	dispatchedOnly: 20,
 	off: 1000
 }
 
@@ -33,7 +34,7 @@ const createLogger = level => {
 	))
 }
 
-const logDispatchMessage = (logDispatch, type, {
+const logDispatchMessage = (logDispatch, logDispatchedOnly, type, {
 	__fazor: { started }
 }, ignored, dispatchColor, message) => {
 	const logArgs = [
@@ -49,11 +50,12 @@ const logDispatchMessage = (logDispatch, type, {
 		logArgs.push(gray)
 		logArgs.push(yellow)
 	}
-	logDispatch.apply(null, logArgs)
+	const log = ignored ? logDispatch : logDispatchedOnly
+	log.apply(null, logArgs)
 }
 
 const createQueue = ({
-	logger: [ , logDebug, logDispatch ]
+	logger: [ , logDebug, logDispatch, logDispatchedOnly ]
 }) => {
 	logDebug('createQueue called')
 	const q = queue(({
@@ -79,7 +81,7 @@ const createQueue = ({
 		}).then(result => {
 			logDebug('handler result', result)
 			if (result === void 0 || typeof result === 'object') {
-				logDispatchMessage(logDispatch, type, state, false, green)
+				logDispatchMessage(logDispatch, logDispatchedOnly, type, state, false, green)
 				dispatch({ type, ...result })
 			}
 			else if (result !== false) {
@@ -87,7 +89,7 @@ const createQueue = ({
 					+ `, an object to dispatch or false to abort dispatch`)
 			}
 			else {
-				logDispatchMessage(logDispatch, type, state, true, yellow, 'handler returned false')
+				logDispatchMessage(logDispatch, logDispatchedOnly, type, state, true, yellow, 'handler returned false')
 			}
 			cb(result)
 		})
@@ -149,7 +151,7 @@ export const create = ({
 	loggingLevel = loggingLevels.dispatch
 } = {}) => {
 	const logger = createLogger(loggingLevel)
-	const [ setLoggingLevel, logDebug, logDispatch ] = logger
+	const [ setLoggingLevel, logDebug, , logDispatchedOnly ] = logger
 
 	logDebug('creating fazor')
 
@@ -197,9 +199,9 @@ export const create = ({
 				(state, { type, ...action }) => {
 					const { reducer } = actions[type]
 					const newState = reducer(state, action)
-					logDispatch('%c\tPREVIOUS STATE', gray, state)
-					logDispatch('%c\tACTION', orange, { type, ...action })
-					logDispatch('%c\tNEW STATE', blue, newState)
+					logDispatchedOnly('%c\tPREVIOUS STATE', gray, state)
+					logDispatchedOnly('%c\tACTION', orange, { type, ...action })
+					logDispatchedOnly('%c\tNEW STATE', blue, newState)
 					return { ...newState }
 				},
 				initialState
