@@ -1,6 +1,6 @@
 {
 	"name": "@fazor/fazor",
-	"version": "0.6.2",
+	"version": "0.6.3",
 	"description": "a redux like state engine using react useReducer and constate",
 	"main": "dist/index.js",
 	"devDependencies": {
