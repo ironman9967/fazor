@@ -13,7 +13,28 @@ const orange = 'color: #ffbb22'
 const gray = 'color: #555555'
 const blue = 'color: #0099cc'
 
-const log = console.log
+export const loggingLevels = {
+	debug: 0,
+	dispatch: 10,
+	off: 1000
+}
+
+const createLogger = (level = loggingLevels.dispatch) => {
+	const loggingLevelKeys = Object.keys(loggingLevels)
+	return [
+		newLevel => {
+			level = newLevel
+			return { level }
+		}
+	].concat(loggingLevelKeys.slice(0, loggingLevelKeys.length - 1).map(
+		loggingLevel => (...args) => level <= loggingLevels[loggingLevel]
+			? console.log.apply(null, args)
+			: void 0
+	))
+}
+
+const logger = createLogger()
+const [ setLoggingLevel, logDebug, logDispatch ] = logger
 
 const logDispatchMessage = (type, {
 	__fazor: { started }
@@ -31,11 +52,11 @@ const logDispatchMessage = (type, {
 		logArgs.push(gray)
 		logArgs.push(yellow)
 	}
-	log.apply(null, logArgs)
+	logDispatch.apply(null, logArgs)
 }
 
 const createQueue = () => {
-	log('createQueue called')
+	logDebug('createQueue called')
 	const q = queue(({
 		actions,
 		type,
@@ -43,7 +64,7 @@ const createQueue = () => {
 		state,
 		dispatch
 	}, cb) => {
-		log('push to queue', {
+		logDebug('push to queue', {
 			actions,
 			type,
 			args,
@@ -57,7 +78,7 @@ const createQueue = () => {
 				reject(e)
 			}
 		}).then(result => {
-			log('handler result', result)
+			logDebug('handler result', result)
 			if (result === void 0 || typeof result === 'object') {
 				logDispatchMessage(type, state, false, green)
 				dispatch({ type, ...result })
@@ -74,9 +95,9 @@ const createQueue = () => {
 	})
 	return [
 		item => new Promise((resolve, reject) => {
-			log('pushing to queue', item)
+			logDebug('pushing to queue', item)
 			q.push(item, result => {
-				log('queue task result', result)
+				logDebug('queue task result', result)
 				if (result instanceof Error) {
 					reject(result)
 				}
@@ -89,9 +110,9 @@ const createQueue = () => {
 }
 
 const createActionCreator = (types, actions) => {
-	log('creating action creator', { types, actions })
+	logDebug('creating action creator', { types, actions })
 	return (...args) => {
-		log('create action', args)
+		logDebug('create action', args)
 		const isFirstArgString = args[0] !== void 0 && typeof args[0] === 'string'
 		const isArray = Array.isArray(args[0]) && args[0].length > 0
 		const typeOnly = isFirstArgString && args.length === 1
@@ -117,12 +138,12 @@ const createActionCreator = (types, actions) => {
 			types.push(type)
 		}
 		actions[type] = { handler, reducer }
-		log('action created', { type, handler, reducer })
+		logDebug('action created', { type, handler, reducer })
 	}
 }
 
 export const create = () => {
-	log('creating fazor')
+	logDebug('creating fazor')
 
 	const types = []
 	const actions = []
@@ -131,11 +152,29 @@ export const create = () => {
 
 	const createAction = createActionCreator(types, actions)
 
+	createAction([
+		'__fazorSetLoggingLevel',
+		setLoggingLevel,
+		({ __fazor, ...state }, { level: loggingLevel }) => ({
+			...state,
+			__fazor: {
+				...__fazor,
+				loggingLevel
+			}
+		})
+	])
+
 	return [
 		createAction,
 		clientInitialState => createUseContext(() => {
-			const initialState = { __fazor: { started: Date.now() }, ...clientInitialState }
-			log('using context', { initialState })
+			const initialState = {
+				__fazor: {
+					started: Date.now(),
+					loggingLevel: loggingLevels.dispatch
+				},
+				...clientInitialState
+			}
+			logDebug('using context', { initialState })
 			const [
 				state,
 				dispatch
@@ -143,9 +182,9 @@ export const create = () => {
 				(state, { type, ...action }) => {
 					const { reducer } = actions[type]
 					const newState = reducer(state, action)
-					log('%c\tPREVIOUS STATE', gray, state)
-					log('%c\tACTION', orange, { type, ...action })
-					log('%c\tNEW STATE', blue, newState)
+					logDispatch('%c\tPREVIOUS STATE', gray, state)
+					logDispatch('%c\tACTION', orange, { type, ...action })
+					logDispatch('%c\tNEW STATE', blue, newState)
 					return { ...newState }
 				},
 				initialState
@@ -161,11 +200,12 @@ export const create = () => {
 							state,
 							dispatch
 						}
-						log('action dispatch called', actionDispatchCall)
+						logDebug('action dispatch called', actionDispatchCall)
 						return await queueDispatch(actionDispatchCall)
 					}
 					return actionDispatches
-				}, {})
+				}, {}),
+				logger
 			]
 		})
 	]
