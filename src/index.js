@@ -186,7 +186,7 @@ export const create = ({
 				...clientInitialState,
 				...reduceSetLoggingLevel(
 					{ __fazor: { started: Date.now() } },
-					{ level: loggingLevels.dispatch }
+					{ level: loggingLevel }
 				)
 			}
 			logDebug('using context', { initialState })
