@@ -19,7 +19,7 @@ export const loggingLevels = {
 	off: 1000
 }
 
-const createLogger = (level = loggingLevels.dispatch) => {
+const createLogger = level => {
 	const loggingLevelKeys = Object.keys(loggingLevels)
 	return [
 		newLevel => {
@@ -33,10 +33,7 @@ const createLogger = (level = loggingLevels.dispatch) => {
 	))
 }
 
-const logger = createLogger()
-const [ setLoggingLevel, logDebug, logDispatch ] = logger
-
-const logDispatchMessage = (type, {
+const logDispatchMessage = (logDispatch, type, {
 	__fazor: { started }
 }, ignored, dispatchColor, message) => {
 	const logArgs = [
@@ -55,7 +52,9 @@ const logDispatchMessage = (type, {
 	logDispatch.apply(null, logArgs)
 }
 
-const createQueue = () => {
+const createQueue = ({
+	logger: [ , logDebug, logDispatch ]
+}) => {
 	logDebug('createQueue called')
 	const q = queue(({
 		actions,
@@ -80,7 +79,7 @@ const createQueue = () => {
 		}).then(result => {
 			logDebug('handler result', result)
 			if (result === void 0 || typeof result === 'object') {
-				logDispatchMessage(type, state, false, green)
+				logDispatchMessage(logDispatch, type, state, false, green)
 				dispatch({ type, ...result })
 			}
 			else if (result !== false) {
@@ -88,7 +87,7 @@ const createQueue = () => {
 					+ `, an object to dispatch or false to abort dispatch`)
 			}
 			else {
-				logDispatchMessage(type, state, true, yellow, 'handler returned false')
+				logDispatchMessage(logDispatch, type, state, true, yellow, 'handler returned false')
 			}
 			cb(result)
 		})
@@ -109,7 +108,11 @@ const createQueue = () => {
 	]
 }
 
-const createActionCreator = (types, actions) => {
+const createActionCreator = ({
+	logger: [ , logDebug ],
+	types,
+	actions
+}) => {
 	logDebug('creating action creator', { types, actions })
 	return (...args) => {
 		logDebug('create action', args)
@@ -142,15 +145,20 @@ const createActionCreator = (types, actions) => {
 	}
 }
 
-export const create = () => {
+export const create = ({
+	loggingLevel = loggingLevels.dispatch
+} = {}) => {
+	const logger = createLogger(loggingLevel)
+	const [ setLoggingLevel, logDebug, logDispatch ] = logger
+
 	logDebug('creating fazor')
 
 	const types = []
 	const actions = []
 
-	const [ queueDispatch ] = createQueue()
+	const [ queueDispatch ] = createQueue({ logger })
 
-	const createAction = createActionCreator(types, actions)
+	const createAction = createActionCreator({ logger, types, actions })
 
 	const reduceSetLoggingLevel = (
 		{ __fazor, ...state },
