@@ -152,27 +152,34 @@ export const create = () => {
 
 	const createAction = createActionCreator(types, actions)
 
+	const reduceSetLoggingLevel = (
+		{ __fazor, ...state },
+		{ level: loggingLevel }
+	) => ({
+		...state,
+		__fazor: {
+			...__fazor,
+			loggingLevel,
+			loggingLevelName: Object.keys(loggingLevels)
+				.find(l => loggingLevels[l] === loggingLevel)
+		}
+	})
+
 	createAction([
 		'__fazorSetLoggingLevel',
 		setLoggingLevel,
-		({ __fazor, ...state }, { level: loggingLevel }) => ({
-			...state,
-			__fazor: {
-				...__fazor,
-				loggingLevel
-			}
-		})
+		reduceSetLoggingLevel
 	])
 
 	return [
 		createAction,
 		clientInitialState => createUseContext(() => {
 			const initialState = {
-				__fazor: {
-					started: Date.now(),
-					loggingLevel: loggingLevels.dispatch
-				},
-				...clientInitialState
+				...clientInitialState,
+				...reduceSetLoggingLevel(
+					{ __fazor: { started: Date.now() } },
+					{ level: loggingLevels.dispatch }
+				)
 			}
 			logDebug('using context', { initialState })
 			const [
@@ -207,6 +214,7 @@ export const create = () => {
 				}, {}),
 				logger
 			]
-		})
+		}),
+		logger
 	]
 }
